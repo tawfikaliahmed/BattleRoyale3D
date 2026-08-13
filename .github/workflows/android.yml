@@ -2,19 +2,19 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -23,65 +23,43 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android packages
-        run: |
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;25.2.9519653"
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
-
       - name: Download Godot 4.3
         run: |
-          mkdir -p ~/godot
-          cd ~/godot
-          curl -L -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
-          unzip godot.zip
+          mkdir -p $HOME/godot
+          cd $HOME/godot
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
           mv Godot_v4.3-stable_linux.x86_64 godot
           chmod +x godot
-          echo "GODOT=~/godot/godot" >> $GITHUB_ENV
+          echo "GODOT=$HOME/godot/godot" >> $GITHUB_ENV
 
-      - name: Download Android Export Templates
+      - name: Download Export Templates
         run: |
-          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          mkdir -p $HOME/.local/share/godot/export_templates/4.3.stable
           cd /tmp
-          curl -L -o templates.tpz https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
-          unzip templates.tpz
-          mv templates/* ~/.local/share/godot/export_templates/4.3.stable/
-          ls -la ~/.local/share/godot/export_templates/4.3.stable/
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz
+          cp -r templates/* $HOME/.local/share/godot/export_templates/4.3.stable/
+          ls $HOME/.local/share/godot/export_templates/4.3.stable/
 
       - name: Create debug keystore
         run: |
-          keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          keytool -genkeypair -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$(pwd)/debug.keystore" >> $GITHUB_ENV
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> $GITHUB_ENV
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> $GITHUB_ENV
 
-      - name: Create export presets if missing
-        run: |
-          if [ ! -f export_presets.cfg ]; then
-            echo "export_presets.cfg missing"
-            exit 1
-          fi
-
-      - name: Export Android APK (Debug)
+      - name: Export APK
         run: |
           mkdir -p build
-          $GODOT --headless --path . --export-debug "Android" build/BattleRoyale3D.apk 2>&1 | tee export.log
+          $GODOT --headless --path . --export-debug "Android" build/BattleRoyale3D.apk
           ls -la build/ || true
-          cat export.log || true
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: BattleRoyale3D-APK
           path: build/*.apk
           if-no-files-found: warn
-          retention-days: 14
-
-      - name: Upload export log
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: export-log
-          path: export.log
-          if-no-files-found: ignore
+          retention-days: 7
