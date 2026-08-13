@@ -1,0 +1,73 @@
+; Engine configuration file for BattleRoyale3D
+config_version=5
+
+[application]
+
+config/name="BattleRoyale3D"
+config/description="Original 3D Battle Royale mobile game - Prototype"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "Mobile")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/mode=2
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=0
+lights_and_shadows/directional_shadow/size=2048
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="player"
+3d_physics/layer_3="enemy"
+3d_physics/layer_4="projectile"
+3d_physics/layer_5="pickup"
+
+[physics]
+
+3d/physics_engine="JoltPhysics3D"
+
+[input]
+
+move_left={
+"deadzone": 0.5,
+"events": []
+}
+move_right={
+"deadzone": 0.5,
+"events": []
+}
+move_forward={
+"deadzone": 0.5,
+"events": []
+}
+move_back={
+"deadzone": 0.5,
+"events": []
+}
+jump={
+"deadzone": 0.5,
+"events": []
+}
+shoot={
+"deadzone": 0.5,
+"events": []
+}
+reload={
+"deadzone": 0.5,
+"events": []
+}

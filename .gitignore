@@ -1,0 +1,29 @@
+# Godot 4+ specific ignores
+.godot/
+.import/
+*.translation
+*.import
+
+# Android build outputs
+android/
+*.apk
+*.aab
+*.keystore
+*.jks
+local.properties
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Temporary
+*.tmp
+*.bak
+*.log
+
+# Export
+export.cfg
