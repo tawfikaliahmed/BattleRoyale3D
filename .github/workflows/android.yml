@@ -40,6 +40,8 @@ jobs:
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
           unzip -q Godot_v4.3-stable_export_templates.tpz
           cp -r templates/* $HOME/.local/share/godot/export_templates/4.3.stable/
+          # Copy debug template to project for custom use
+          cp $HOME/.local/share/godot/export_templates/4.3.stable/android_debug.apk $GITHUB_WORKSPACE/android_debug_template.apk
           ls $HOME/.local/share/godot/export_templates/4.3.stable/
 
       - name: Create debug keystore
@@ -49,11 +51,17 @@ jobs:
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> $GITHUB_ENV
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> $GITHUB_ENV
 
+      - name: Update export preset to use custom template
+        run: |
+          sed -i 's|custom_template/debug=""|custom_template/debug="res://android_debug_template.apk"|' export_presets.cfg
+          cat export_presets.cfg | head -30
+
       - name: Export APK
         run: |
           mkdir -p build
-          $GODOT --headless --path . --export-debug "Android" build/BattleRoyale3D.apk
+          $GODOT --headless --path . --export-debug "Android" build/BattleRoyale3D.apk 2>&1 | tee export.log
           ls -la build/ || true
+          cat export.log || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -63,3 +71,11 @@ jobs:
           path: build/*.apk
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Upload log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: export-log
+          path: export.log
+          if-no-files-found: ignore
